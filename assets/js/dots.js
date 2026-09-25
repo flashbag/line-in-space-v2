@@ -43,8 +43,19 @@ export class DotLayer {
 	/** Keep the labels facing the camera while the user orbits. */
 	rotateLabels() {
 		LABELED_DOTS.forEach((name) => {
-			this.registry.get(name + 'text').rotation.y = this.camera.rotation.y;
+			const mesh = this.registry.get(name + 'text');
+			mesh.rotation.y = this._labelYaw(mesh.position);
 		});
+	}
+
+	// Yaw from the label towards the camera. camera.rotation.y is a Euler
+	// angle limited to -90°..90°, which made labels face away from the
+	// camera outside that sector; atan2 over the full circle does not.
+	_labelYaw(position) {
+		return Math.atan2(
+			this.camera.position.x - position.x,
+			this.camera.position.z - position.z
+		);
 	}
 
 	_buildDot(model, name, radius, color) {
@@ -80,12 +91,12 @@ export class DotLayer {
 		const mesh = this.registry.get(key);
 		const point = model.get(name);
 
-		mesh.rotation.y = this.camera.rotation.y;
 		mesh.position.set(
 			point.x - geometry.textWidth / 2,
 			point.y + geometry.textHeight / 3,
 			point.z
 		);
+		mesh.rotation.y = this._labelYaw(mesh.position);
 		mesh.geometry.verticesNeedUpdate = true;
 	}
 }
