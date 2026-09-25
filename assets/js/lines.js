@@ -1,9 +1,8 @@
 import { COLORS } from './config.js';
-import { objects } from './registry.js';
 
-// Each line is registered in `objects` under the concatenation of its two
-// endpoint names (e.g. ['A','B'] -> 'AB'), which the visibility checkboxes
-// in index.html rely on.
+// Each line is registered under the concatenation of its two endpoint names
+// (e.g. ['A','B'] -> 'AB'), which the visibility checkboxes in index.html
+// rely on.
 const LINE_GROUPS = [
 	{ color: COLORS.mainLine, width: 4, pairs: [['A', 'B']] },
 	{ color: COLORS.mainLine, width: 1.5, pairs: [['A', 'F'], ['A', 'H'], ['A', 'P']] },
@@ -27,31 +26,41 @@ const LINE_GROUPS = [
 	},
 ];
 
-function buildLine(points, pair, width, color) {
-	const key = pair.join('');
-
-	if (!objects[key]) {
-		const geometry = new THREE.Geometry();
-		const material = new THREE.LineBasicMaterial({ color: color, linewidth: width });
-		geometry.vertices.push(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
-		objects[key] = new THREE.Line(geometry, material);
+/** Every line segment connecting dots, projections and traces. */
+export class LineLayer {
+	constructor(registry) {
+		this.registry = registry;
 	}
 
-	pair.forEach(function (dotName, index) {
-		const vertex = objects[key].geometry.vertices[index];
-		vertex.x = points[dotName].x;
-		vertex.y = points[dotName].y;
-		vertex.z = points[dotName].z;
-	});
-
-	objects[key].geometry.verticesNeedUpdate = true;
-}
-
-/** Create the line meshes, or update their endpoints if they already exist. */
-export function buildLines(points) {
-	LINE_GROUPS.forEach(function (group) {
-		group.pairs.forEach(function (pair) {
-			buildLine(points, pair, group.width, group.color);
+	/** Create the line meshes, or update their endpoints if they already exist. */
+	build(model) {
+		LINE_GROUPS.forEach((group) => {
+			group.pairs.forEach((pair) => {
+				this._buildLine(model, pair, group.width, group.color);
+			});
 		});
-	});
+	}
+
+	_buildLine(model, pair, width, color) {
+		const key = pair.join('');
+
+		if (!this.registry.has(key)) {
+			const geometry = new THREE.Geometry();
+			const material = new THREE.LineBasicMaterial({ color: color, linewidth: width });
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
+			this.registry.register(key, new THREE.Line(geometry, material));
+		}
+
+		const line = this.registry.get(key);
+
+		pair.forEach((dotName, index) => {
+			const vertex = line.geometry.vertices[index];
+			const point = model.get(dotName);
+			vertex.x = point.x;
+			vertex.y = point.y;
+			vertex.z = point.z;
+		});
+
+		line.geometry.verticesNeedUpdate = true;
+	}
 }
