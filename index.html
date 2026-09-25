@@ -15,12 +15,14 @@
 	<link rel="stylesheet" href="assets/css/css-checkbox.css">
 	<link rel="stylesheet" href="assets/css/style.css">
 
-	<script type="text/javascript" src="assets/three/three.min.js"></script>
-	<script type="text/javascript" src="assets/three/OrbitControls.js"></script>
-	<script type="text/javascript" src="assets/three/Detector.js"></script>
-	<script type="text/javascript" src="assets/three/helvetiker_regular.typeface.js"></script>
-	<script type="text/javascript" src="assets/three/THREEx.WindowResize.js"></script>
-
+	<script type="importmap">
+	{
+		"imports": {
+			"three": "./assets/three/three.module.js",
+			"three/addons/": "./assets/three/addons/"
+		}
+	}
+	</script>
 	<script type="module" src="assets/js/main.js"></script>
 
 	<script>

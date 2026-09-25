@@ -1,7 +1,7 @@
-/**
- * Scene, camera, orbit controls and render loop.
- * Uses the vendored globals THREE and THREEx loaded from assets/three/.
- */
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/** Scene, camera, orbit controls, renderer and render loop. */
 export class Viewport {
 	constructor() {
 		this.scene = new THREE.Scene();
@@ -10,8 +10,14 @@ export class Viewport {
 		this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 1000);
 		this.camera.position.set(175, 105, 175);
 
-		this.controls = new THREE.OrbitControls(this.camera);
-		this.renderer = null;
+		this.renderer = new THREE.WebGLRenderer({ antialias: true });
+		this.renderer.setClearColor(0xffffff);
+		this.renderer.setPixelRatio(window.devicePixelRatio);
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+		window.addEventListener('resize', () => this._onResize());
 	}
 
 	onOrbit(callback) {
@@ -19,18 +25,15 @@ export class Viewport {
 	}
 
 	start() {
-		this.renderer = new THREE.WebGLRenderer();
-		this.renderer.setClearColor(0xffffff);
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-		THREEx.WindowResize(this.renderer, this.camera);
-
 		document.body.appendChild(this.renderer.domElement);
-
-		const animate = () => {
-			requestAnimationFrame(animate);
+		this.renderer.setAnimationLoop(() => {
 			this.renderer.render(this.scene, this.camera);
-		};
-		animate();
+		});
+	}
+
+	_onResize() {
+		this.camera.aspect = window.innerWidth / window.innerHeight;
+		this.camera.updateProjectionMatrix();
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
 	}
 }

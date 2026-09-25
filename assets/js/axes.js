@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { COLORS } from './config.js';
 
 const AXIS_LENGTH = 1000;
@@ -15,13 +16,11 @@ export class AxesLayer {
 		this.registry.register('helperAxes', this._buildHelperAxes());
 	}
 
-	_createLine(src, dst, colorHex, thin) {
-		const geometry = new THREE.Geometry();
-		const material = new THREE.LineBasicMaterial({ linewidth: thin ? 1 : 2, color: colorHex });
+	_createLine(src, dst, colorHex) {
+		const geometry = new THREE.BufferGeometry().setFromPoints([src, dst]);
+		const material = new THREE.LineBasicMaterial({ color: colorHex });
 
-		geometry.vertices.push(src.clone(), dst.clone());
-
-		return new THREE.Line(geometry, material, THREE.LinePieces);
+		return new THREE.Line(geometry, material);
 	}
 
 	_buildMainAxes() {
@@ -50,14 +49,14 @@ export class AxesLayer {
 				continue;
 			}
 			// plane P — Z and X change
-			group.add(this._createLine(new THREE.Vector3(-length, i, 0), new THREE.Vector3(length, i, 0), color, true));
-			group.add(this._createLine(new THREE.Vector3(i, -length, 0), new THREE.Vector3(i, length, 0), color, true));
+			group.add(this._createLine(new THREE.Vector3(-length, i, 0), new THREE.Vector3(length, i, 0), color));
+			group.add(this._createLine(new THREE.Vector3(i, -length, 0), new THREE.Vector3(i, length, 0), color));
 			// plane F — Z and Y change
-			group.add(this._createLine(new THREE.Vector3(0, i, -length), new THREE.Vector3(0, i, length), color, true));
-			group.add(this._createLine(new THREE.Vector3(0, -length, i), new THREE.Vector3(0, length, i), color, true));
+			group.add(this._createLine(new THREE.Vector3(0, i, -length), new THREE.Vector3(0, i, length), color));
+			group.add(this._createLine(new THREE.Vector3(0, -length, i), new THREE.Vector3(0, length, i), color));
 			// plane H — X and Y change
-			group.add(this._createLine(new THREE.Vector3(i, 0, -length), new THREE.Vector3(i, 0, length), color, true));
-			group.add(this._createLine(new THREE.Vector3(-length, 0, i), new THREE.Vector3(length, 0, i), color, true));
+			group.add(this._createLine(new THREE.Vector3(i, 0, -length), new THREE.Vector3(i, 0, length), color));
+			group.add(this._createLine(new THREE.Vector3(-length, 0, i), new THREE.Vector3(length, 0, i), color));
 		}
 
 		return group;
