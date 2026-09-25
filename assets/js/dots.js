@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { COLORS } from './config.js';
 
 const DOT_GROUPS = [
@@ -18,9 +20,10 @@ const LABELED_DOTS = TEXT_GROUPS.reduce((all, group) => all.concat(group.names),
 
 /** Every dot sphere and its floating text label. */
 export class DotLayer {
-	constructor(registry, camera) {
+	constructor(registry, camera, font) {
 		this.registry = registry;
 		this.camera = camera;
+		this.font = font;
 		// Text geometries are expensive to build, so they are created once per
 		// label and only the mesh position is updated afterwards.
 		this.textGeometries = {};
@@ -70,7 +73,7 @@ export class DotLayer {
 
 	_textGeometry(label, size) {
 		if (!this.textGeometries[label]) {
-			const geometry = new THREE.TextGeometry(label, { size: size, height: 0.3 });
+			const geometry = new TextGeometry(label, { font: this.font, size: size, depth: 0.3 });
 			geometry.computeBoundingBox();
 			geometry.textWidth = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
 			geometry.textHeight = geometry.boundingBox.max.y - geometry.boundingBox.min.y;
@@ -97,6 +100,5 @@ export class DotLayer {
 			point.z
 		);
 		mesh.rotation.y = this._labelYaw(mesh.position);
-		mesh.geometry.verticesNeedUpdate = true;
 	}
 }
